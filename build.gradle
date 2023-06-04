@@ -1,0 +1,56 @@
+plugins {
+	id 'java'
+	id "me.champeau.jmh" version "0.7.1"
+	id "io.morethan.jmhreport" version "0.9.0"
+}
+
+wrapper {
+	gradleVersion = '7.4.2'
+	distributionType = Wrapper.DistributionType.BIN
+}
+
+group 'io.github.michaljonko'
+version '1.0-SNAPSHOT'
+
+compileJava.sourceCompatibility = JavaVersion.VERSION_11
+compileJava.options.encoding = 'UTF-8'
+compileTestJava.options.encoding = 'UTF-8'
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+//	implementation group: 'com.google.guava', name: 'guava', version: '31.1-jre'
+//	implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.12.0'
+//	implementation group: 'io.vavr', name: 'vavr', version: '0.10.4'
+}
+
+jmh {
+	includes = [ 'LockBenchmark' ]
+
+	def jfrProfiler = "jfr:dir=${project.buildDir}/profiler;configName=profile;debugNonSafePoints=true;stackDepth=256".toString()
+	def asyncProfilerCpu = "async:output=flamegraph,tree,text;direction=forward;event=cpu;threads=true;interval=100000;ann=true;rawCommand=safemode=32;verbose=false;libPath=/usr/lib/async-profiler/build/libasyncProfiler.so;dir=${project.buildDir}/profiler".toString()
+	def asyncProfilerAlloc = "async:output=flamegraph,tree,text;direction=forward;event=alloc;interval=100000;ann=true;rawCommand=safemode=32,alloc=32k;verbose=false;libPath=/usr/lib/async-profiler/build/libasyncProfiler.so;dir=${project.buildDir}/profiler".toString()
+
+	jvmArgsAppend = [ ]
+	profilers = [ asyncProfilerCpu ] // Use profilers to collect additional data. Supported profilers: [cl, comp, gc, stack, perf, perfnorm, perfasm, xperf, xperfasm, hs_cl, hs_comp, hs_gc, hs_rt, hs_thr, async, jfr]
+	synchronizeIterations = false // Synchronize iterations?
+	failOnError = true // Should JMH fail immediately if any benchmark had experienced the unrecoverable error?
+	forceGC = false // Should JMH force GC between iterations?
+
+	zip64 = false // Use ZIP64 format for bigger archives
+	jmhVersion = '1.36' // Specifies JMH version
+	includeTests = false	// Allows to include test sources into generate JMH jar, i.e. use it when benchmarks depend on the test classes.
+	duplicateClassesStrategy = DuplicatesStrategy.EXCLUDE // Strategy to apply when encountring duplicate classes during creation of the fat jar (i.e. while executing jmhJar task)
+
+	humanOutputFile = project.file("${project.buildDir}/reports/jmh/human.txt") // human-readable output file
+	resultsFile = project.file("${project.buildDir}/reports/jmh/results.json") // results file
+	resultFormat = 'JSON' // Result format type (one of CSV, JSON, NONE, SCSV, TEXT)
+	verbosity = 'NORMAL' // Verbosity mode. Available modes are: [SILENT, NORMAL, EXTRA]
+}
+
+jmhReport {
+	jmhResultPath = project.file("${project.buildDir}/reports/jmh/results.json")
+	jmhReportOutput = project.file("${project.buildDir}/reports/jmh")
+}
