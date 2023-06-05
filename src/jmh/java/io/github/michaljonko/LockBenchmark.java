@@ -1,14 +1,7 @@
 package io.github.michaljonko;
 
-import org.openjdk.jmh.annotations.Benchmark;
-import org.openjdk.jmh.annotations.BenchmarkMode;
-import org.openjdk.jmh.annotations.Fork;
-import org.openjdk.jmh.annotations.Measurement;
-import org.openjdk.jmh.annotations.Mode;
-import org.openjdk.jmh.annotations.OutputTimeUnit;
-import org.openjdk.jmh.annotations.Threads;
-import org.openjdk.jmh.annotations.Timeout;
-import org.openjdk.jmh.annotations.Warmup;
+import org.openjdk.jmh.annotations.*;
+import org.openjdk.jmh.infra.Control;
 
 import java.util.concurrent.TimeUnit;
 
@@ -22,14 +15,14 @@ import java.util.concurrent.TimeUnit;
 public class LockBenchmark {
 
     @Benchmark
-    public boolean measureLockPark(LockParkState state) {
+    public boolean measureLockPark(LockParkState state, Control control) {
         return state.multiLock()
-                .ioWithParkNanos(state.parkDuration());
+                .ioWithParkNanos(state.parkDuration(),control);
     }
 
     @Benchmark
-    public boolean measureLockSpin(LockSpinState state) {
+    public boolean measureLockSpin(LockSpinState state, Control control) {
         return state.multiLock()
-                .ioWithSpin();
+                .ioWithSpin(control);
     }
 }

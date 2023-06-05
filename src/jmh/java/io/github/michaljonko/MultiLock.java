@@ -1,24 +1,26 @@
 package io.github.michaljonko;
 
+import org.openjdk.jmh.infra.Control;
+
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.LockSupport;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static java.util.Objects.nonNull;
 
 public final class MultiLock implements AutoCloseable {
 
     private final Path path;
-    private final Semaphore semaphore;
+    private final ReentrantLock lock;
 
     public MultiLock() {
         try {
             this.path = Files.createTempFile("test", "text");
-            this.semaphore = new Semaphore(1);
+            this.lock = new ReentrantLock();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -33,39 +35,45 @@ public final class MultiLock implements AutoCloseable {
         }
     }
 
-    public boolean ioWithParkNanos(long parkingDurationNs) {
-        while (!semaphore.tryAcquire()) {
+    public boolean ioWithParkNanos(long parkingDurationNs, org.openjdk.jmh.infra.Control control) {
+        while (!lock.tryLock()) {
+            if (control.stopMeasurement) {
+                return false;
+            }
             LockSupport.parkNanos(parkingDurationNs);
         }
         try {
             return io();
         } finally {
-            semaphore.release();
+            lock.unlock();
         }
     }
 
-    public boolean ioWithSpin() {
-        while (!semaphore.tryAcquire()) {
+    public boolean ioWithSpin(Control control) {
+        while (!lock.tryLock()) {
+            if (control.stopMeasurement) {
+                return false;
+            }
             Thread.onSpinWait();
         }
         try {
             return io();
         } finally {
-            semaphore.release();
+            lock.unlock();
         }
     }
 
     public void release() {
-        semaphore.release();
+        //lock.unlock();
     }
 
     @Override
     public void close() {
         if (nonNull(path)) {
             try {
+                //lock.unlock();
                 System.out.println("File size: " + Files.size(path));
                 Files.deleteIfExists(path);
-                semaphore.release();
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
