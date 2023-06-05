@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 @State(Scope.Benchmark)
 public class LockParkState {
 
-    @Param({"100"})
+    @Param({"1", "10", "100"})
     private long parkDuration;
     private MultiLock multiLock;
 
@@ -23,11 +23,6 @@ public class LockParkState {
 
     @TearDown(Level.Iteration)
     public void teardownIteration() {
-        multiLock.release();
-    }
-
-    @TearDown(Level.Trial)
-    public void teardownTrial() {
         multiLock.close();
     }
 

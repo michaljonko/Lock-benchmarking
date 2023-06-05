@@ -18,11 +18,6 @@ public class LockSpinState {
 
     @TearDown(Level.Iteration)
     public void teardownIteration() {
-        multiLock.release();
-    }
-
-    @TearDown(Level.Trial)
-    public void teardownTrial() {
         multiLock.close();
     }
 
