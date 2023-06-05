@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 @Warmup(time = 3, iterations = 5, timeUnit = TimeUnit.SECONDS)
 @Measurement(iterations = 5, time = 10, timeUnit = TimeUnit.SECONDS)
 @Timeout(time = 20, timeUnit = TimeUnit.SECONDS)
-@Threads(32)
+@Threads(48)
 public class LockBenchmark {
 
     @Benchmark

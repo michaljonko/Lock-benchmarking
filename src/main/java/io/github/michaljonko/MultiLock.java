@@ -55,12 +55,17 @@ public final class MultiLock implements AutoCloseable {
         }
     }
 
+    public void release() {
+        semaphore.release();
+    }
+
     @Override
     public void close() {
         if (nonNull(path)) {
             try {
                 System.out.println("File size: " + Files.size(path));
                 Files.deleteIfExists(path);
+                semaphore.release();
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
