@@ -11,7 +11,7 @@ public class LockSpinState {
 
     private MultiLock multiLock;
 
-    @Setup(Level.Trial)
+    @Setup(Level.Iteration)
     public void setup() {
         multiLock = new MultiLock();
     }
