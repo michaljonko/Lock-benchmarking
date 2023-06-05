@@ -30,11 +30,12 @@ jmh {
 	includes = [ 'LockBenchmark' ]
 
 	def jfrProfiler = "jfr:dir=${project.buildDir}/profiler;configName=profile;debugNonSafePoints=true;stackDepth=256".toString()
-	def asyncProfilerCpu = "async:output=flamegraph,tree,text;direction=forward;event=cpu;threads=true;interval=100000;ann=true;rawCommand=safemode=32;verbose=false;libPath=/usr/lib/async-profiler/build/libasyncProfiler.so;dir=${project.buildDir}/profiler".toString()
+	def asyncProfilerCpu = "async:output=flamegraph,tree,text;direction=forward;event=cpu;interval=100000;ann=true;rawCommand=safemode=32;verbose=true;libPath=/usr/lib/async-profiler/build/libasyncProfiler.so;dir=${project.buildDir}/profiler".toString()
+	def asyncProfilerWall = "async:output=flamegraph,tree,text;direction=forward;event=wall;interval=100000;ann=true;rawCommand=safemode=32;verbose=true;libPath=/usr/lib/async-profiler/build/libasyncProfiler.so;dir=${project.buildDir}/profiler".toString()
 	def asyncProfilerAlloc = "async:output=flamegraph,tree,text;direction=forward;event=alloc;interval=100000;ann=true;rawCommand=safemode=32,alloc=32k;verbose=false;libPath=/usr/lib/async-profiler/build/libasyncProfiler.so;dir=${project.buildDir}/profiler".toString()
 
 	jvmArgsAppend = [ ]
-	profilers = [ asyncProfilerCpu ] // Use profilers to collect additional data. Supported profilers: [cl, comp, gc, stack, perf, perfnorm, perfasm, xperf, xperfasm, hs_cl, hs_comp, hs_gc, hs_rt, hs_thr, async, jfr]
+	profilers = [ asyncProfilerWall ] // Use profilers to collect additional data. Supported profilers: [cl, comp, gc, stack, perf, perfnorm, perfasm, xperf, xperfasm, hs_cl, hs_comp, hs_gc, hs_rt, hs_thr, async, jfr]
 	synchronizeIterations = false // Synchronize iterations?
 	failOnError = true // Should JMH fail immediately if any benchmark had experienced the unrecoverable error?
 	forceGC = false // Should JMH force GC between iterations?

@@ -6,24 +6,22 @@ import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
 
-import java.util.concurrent.Semaphore;
-
 @State(Scope.Benchmark)
 public class LockSpinState {
 
-  private Semaphore semaphore;
+    private MultiLock multiLock;
 
-  @Setup(Level.Trial)
-  public void setup() {
-    semaphore = new Semaphore(1, true);
-  }
+    @Setup(Level.Trial)
+    public void setup() {
+        multiLock = new MultiLock();
+    }
 
-  @TearDown(Level.Trial)
-  public void teardown() {
-    semaphore.release();
-  }
+    @TearDown(Level.Trial)
+    public void teardown() {
+        multiLock.close();
+    }
 
-  public Semaphore semaphore() {
-    return semaphore;
-  }
+    public MultiLock multiLock() {
+        return multiLock;
+    }
 }
