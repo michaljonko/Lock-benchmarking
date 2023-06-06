@@ -5,6 +5,8 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.Collection;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.LockSupport;
 
@@ -26,7 +28,7 @@ public final class MultiLock implements AutoCloseable {
         }
     }
 
-    public boolean withParkNanos(long parkingDurationNs) {
+    public boolean ioWithParkNanos(long parkingDurationNs) {
         while (!locked.compareAndSet(false, true) && running.get()) {
             LockSupport.parkNanos(parkingDurationNs);
         }
@@ -37,12 +39,32 @@ public final class MultiLock implements AutoCloseable {
         }
     }
 
-    public boolean withSpin() {
+    public boolean ioWithSpin() {
         while (!locked.compareAndSet(false, true) && running.get()) {
             Thread.onSpinWait();
         }
         try {
             return running.get() && write();
+        } finally {
+            locked.set(false);
+        }
+    }
+
+    public long countWithParkNanos(Collection<UUID> uuids, long parkingDurationNs) {
+        while (!locked.compareAndSet(false, true) && running.get()) {
+            LockSupport.parkNanos(parkingDurationNs);
+        }
+        try {
+            if (running.get()) {
+                return uuids.stream()
+                        .map(UUID::toString)
+                        .map(String::toLowerCase)
+                        .map(String::chars)
+                        .map(chars -> chars.filter(value -> value == 'a').count())
+                        .reduce(0L, Long::sum);
+
+            }
+            return Long.MIN_VALUE;
         } finally {
             locked.set(false);
         }

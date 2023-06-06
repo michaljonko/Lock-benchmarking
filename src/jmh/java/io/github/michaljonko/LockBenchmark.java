@@ -15,8 +15,8 @@ import java.util.concurrent.TimeUnit;
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 @Fork(value = 1)
-@Warmup(time = 3, iterations = 5, timeUnit = TimeUnit.SECONDS)
-@Measurement(iterations = 6, time = 20, timeUnit = TimeUnit.SECONDS)
+@Warmup(iterations = 5, time = 5, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 5, time = 20, timeUnit = TimeUnit.SECONDS)
 @Timeout(time = 40, timeUnit = TimeUnit.SECONDS)
 @Threads(48)
 public class LockBenchmark {
@@ -24,12 +24,18 @@ public class LockBenchmark {
     @Benchmark
     public boolean measureLockPark(LockParkState state) {
         return state.multiLock()
-                .withParkNanos(state.parkDuration());
+                .ioWithParkNanos(state.parkDuration());
+    }
+
+    @Benchmark
+    public long measureLockParkWithoutSyscall(LockParkState state) {
+        return state.multiLock()
+                .countWithParkNanos(state.uuids(), state.parkDuration());
     }
 
     @Benchmark
     public boolean measureLockSpin(LockSpinState state) {
         return state.multiLock()
-                .withSpin();
+                .ioWithSpin();
     }
 }
