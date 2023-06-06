@@ -14,33 +14,35 @@ public final class MultiLock implements AutoCloseable {
 
     private final Path path;
     private final AtomicBoolean locked;
+    private final AtomicBoolean running;
 
     public MultiLock() {
         try {
             this.path = Files.createTempFile("test", "text");
             this.locked = new AtomicBoolean(false);
+            this.running = new AtomicBoolean(true);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
     public boolean withParkNanos(long parkingDurationNs) {
-        while (!locked.compareAndSet(false, true)) {
+        while (!locked.compareAndSet(false, true) && running.get()) {
             LockSupport.parkNanos(parkingDurationNs);
         }
         try {
-            return write();
+            return running.get() && write();
         } finally {
             locked.set(false);
         }
     }
 
     public boolean withSpin() {
-        while (!locked.compareAndSet(false, true)) {
+        while (!locked.compareAndSet(false, true) && running.get()) {
             Thread.onSpinWait();
         }
         try {
-            return write();
+            return running.get() && write();
         } finally {
             locked.set(false);
         }
@@ -58,6 +60,7 @@ public final class MultiLock implements AutoCloseable {
     @Override
     public void close() {
         if (nonNull(path)) {
+            running.compareAndSet(true, false);
             locked.compareAndSet(true, false);
             try {
                 Files.deleteIfExists(path);
