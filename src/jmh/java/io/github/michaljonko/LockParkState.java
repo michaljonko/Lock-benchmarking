@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 @State(Scope.Benchmark)
 public class LockParkState {
 
-    @Param({"1", "10", "100"})
+    @Param({"10", "100"})
     private long parkDuration;
     private MultiLock multiLock;
 
